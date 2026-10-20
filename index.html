@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0;font:14px system-ui,sans-serif}</style>
+<title>Sai Beauty Salon Manager</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: brand band with today's date, tab bar, then a two-column work area (schedule left, money right) that stacks on phones. Rosewood accent on a green-grey ground. */
+:root{
+  --bg:#f1f4f1; --surface:#ffffff; --surface-2:#e8eee9; --ink:#1c2826; --ink-2:#51625c; --line:#d3dcd6;
+  --accent:#a3304d; --accent-ink:#ffffff; --accent-soft:#f5e1e6; --bar:#dfb2bd; --brass:#8f6a1f;
+  --info:#17526e; --info-bg:#dbeaf2; --ok:#165c3f; --ok-bg:#dcf1e6; --mute:#4b5753; --mute-bg:#e4e9e6;
+  --bad:#8c1d17; --bad-bg:#f9dedb; --warn:#8a4d00; --warn-bg:#fbecd2; --scrim:rgba(14,22,20,.55);
+  --display:"Gloock","Iowan Old Style",Georgia,serif;
+  --body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111715; --surface:#1a2220; --surface-2:#243029; --ink:#e6eeea; --ink-2:#9db0a8; --line:#303d38;
+    --accent:#e4708c; --accent-ink:#1b0a10; --accent-soft:#3b2029; --bar:#6f3445; --brass:#d4ac5a;
+    --info:#8ec7e3; --info-bg:#1b3340; --ok:#86d3ac; --ok-bg:#17352a; --mute:#a9b6b1; --mute-bg:#2a3431;
+    --bad:#f0a49d; --bad-bg:#3d1f1c; --warn:#f0c27a; --warn-bg:#3b2d12; --scrim:rgba(0,0,0,.65);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111715; --surface:#1a2220; --surface-2:#243029; --ink:#e6eeea; --ink-2:#9db0a8; --line:#303d38;
+  --accent:#e4708c; --accent-ink:#1b0a10; --accent-soft:#3b2029; --bar:#6f3445; --brass:#d4ac5a;
+  --info:#8ec7e3; --info-bg:#1b3340; --ok:#86d3ac; --ok-bg:#17352a; --mute:#a9b6b1; --mute-bg:#2a3431;
+  --bad:#f0a49d; --bad-bg:#3d1f1c; --warn:#f0c27a; --warn-bg:#3b2d12; --scrim:rgba(0,0,0,.65);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-block:4px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,h4,p{margin:0}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px;padding:20px 0 16px}
+.brand h1{font:400 clamp(28px,6vw,38px)/1.05 var(--display);letter-spacing:-.01em;text-wrap:balance}
+.brand p{margin-top:6px;color:var(--ink-2);font-size:12.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+.head-acts{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{background:none;border:0;padding:11px 14px;font-weight:600;font-size:14px;color:var(--ink-2);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--surface);border:1px solid var(--line);
+  border-radius:6px;padding:9px 15px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.sm{padding:5px 11px;font-size:13px}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:var(--bg)}
+main{padding-top:22px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.stat{background:var(--surface);padding:14px 18px;min-width:0}
+.stat span{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.stat b{display:block;font:400 30px/1.2 var(--display);font-variant-numeric:tabular-nums;margin-top:2px}
+.stat small{color:var(--ink-2);font-size:13px}
+.cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:28px;margin-top:26px;align-items:start}
+.cols>section{min-width:0}
+.sec-h{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.sec-h h2{font:400 23px/1.2 var(--display);text-wrap:balance}
+.list{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.list>li+li{border-top:1px solid var(--line)}
+.appt{display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:6px 14px;align-items:center;padding:13px 16px;box-shadow:inset 3px 0 0 var(--stripe,var(--line))}
+.appt.p-booked{--stripe:var(--info)} .appt.p-done{--stripe:var(--ok)} .appt.p-noshow{--stripe:var(--bad)} .appt.p-cancel{--stripe:var(--line)}
+.appt.p-cancel .what strong{text-decoration:line-through;color:var(--ink-2)}
+.when{font-variant-numeric:tabular-nums;line-height:1.1}
+.when b{font:400 22px var(--display)} .when span{font-size:12px;font-weight:700;color:var(--ink-2);margin-left:2px;text-transform:uppercase}
+.what{min-width:0}
+.what strong{display:block;overflow-wrap:anywhere}
+.what small{display:block;color:var(--ink-2);font-size:13px;overflow-wrap:anywhere}
+.side{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.p-booked .pill.st,.pill.p-booked{background:var(--info-bg);color:var(--info)}
+.p-done .pill.st,.pill.p-done{background:var(--ok-bg);color:var(--ok)}
+.p-cancel .pill.st,.pill.p-cancel{background:var(--mute-bg);color:var(--mute)}
+.p-noshow .pill.st,.pill.p-noshow{background:var(--bad-bg);color:var(--bad)}
+.pill.mode{background:var(--surface-2);color:var(--ink-2)}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--brass);border:1px solid var(--brass);border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:middle}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:28px 20px;text-align:center;color:var(--ink-2);display:grid;gap:12px;justify-items:center}
+.notice{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 14px;margin-bottom:18px;display:flex;gap:10px 16px;align-items:center;flex-wrap:wrap;justify-content:space-between;font-size:14px;font-weight:500}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.bcol{display:grid;gap:4px;justify-items:center;min-width:0}
+.bcol i{font-style:normal;font-size:11px;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.btrack{height:120px;width:100%;display:flex;align-items:flex-end;background:repeating-linear-gradient(to top,transparent 0,transparent 29px,var(--line) 29px,var(--line) 30px)}
+.bfill{width:100%;background:var(--bar);border-radius:3px 3px 0 0}
+.bcol.now .bfill{background:var(--accent)} .bcol.now i{color:var(--accent)}
+.bcol span{font-size:12px;font-weight:600;color:var(--ink-2)}
+.rowbtn{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:4px 12px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:12px 16px;cursor:pointer}
+.rowbtn:hover{background:var(--surface-2)}
+.rowbtn.cust{grid-template-columns:minmax(0,1fr) auto}
+.rowbtn small{display:block;color:var(--ink-2);font-size:13px}
+.bno{font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:var(--brass)}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.bmain{min-width:0;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;text-align:left}
+.chip small{color:var(--ink-2);font-weight:500;margin-left:3px;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"] small{color:var(--accent-ink);opacity:.85}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.day{flex:1 0 62px;display:grid;justify-items:center;gap:0;padding:8px 4px;background:var(--surface);border:1px solid var(--line);border-radius:8px;cursor:pointer;line-height:1.25}
+.day span{font-size:12px;font-weight:600;color:var(--ink-2)} .day b{font:400 20px var(--display)} .day i{font-style:normal;font-size:11px;font-weight:700;color:var(--info)}
+.day.on{background:var(--ink);border-color:var(--ink)} .day.on span,.day.on i{color:var(--bg)} .day.on b{color:var(--bg)}
+.day.today:not(.on){border-color:var(--accent)}
+.bar-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.search{flex:1 1 220px;min-width:0}
+.field{display:grid;gap:5px;font-size:13px;font-weight:700;min-width:0}
+.field>label,.field>span{font-weight:700}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:9px 11px;font-size:16px;font-weight:500;min-width:0}
+input[type=checkbox]{width:auto}
+.form{display:grid;gap:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inline{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:6px}
+.hint{color:var(--ink-2);font-size:13px;font-weight:500}
+.warnline{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600}
+.grp+.grp{margin-top:10px} .grp h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.scrim{position:fixed;inset:0;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding-top:env(safe-area-inset-top,0px)}
+.sheet{background:var(--surface);width:100%;max-width:700px;max-height:92vh;overflow:auto;border-radius:14px 14px 0 0;
+  padding:16px max(16px,env(safe-area-inset-right,0px)) 0 max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sh-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.sh-head h2{font:400 24px/1.2 var(--display)}
+.x{background:var(--surface-2);border:0;border-radius:6px;width:34px;height:34px;font-size:20px;line-height:1;cursor:pointer;color:var(--ink-2)}
+.sh-foot{position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;
+  padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:auto}
+.sh-foot .left{margin-right:auto}
+@media (min-width:700px){.scrim{align-items:center;padding:24px}.sheet{border-radius:14px;max-height:88vh}}
+.line{display:grid;grid-template-columns:minmax(0,1fr) 96px auto 34px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.line .ln{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.line input{padding:6px 8px;font-size:15px}
+.qty{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.qty button{width:28px;height:28px;border:1px solid var(--line);background:var(--surface);border-radius:6px;cursor:pointer;font-size:16px;line-height:1}
+.totals{display:grid;gap:4px;background:var(--surface-2);border-radius:8px;padding:12px 14px;font-variant-numeric:tabular-nums}
+.totals div{display:flex;justify-content:space-between;gap:12px;font-size:14px}
+.totals .grand{font-size:20px;font-weight:700;border-top:1px solid var(--line);padding-top:6px;margin-top:4px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button{padding:9px;border:1px solid var(--line);background:var(--surface);border-radius:6px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.receipt{border:1px solid var(--line);background:var(--bg);border-radius:4px;padding:18px 18px 16px;font-variant-numeric:tabular-nums}
+.receipt .rh{text-align:center;display:grid;gap:2px;padding-bottom:12px;border-bottom:2px dashed var(--line)}
+.receipt .rh h3{font:400 24px var(--display)}
+.receipt .rh small{color:var(--ink-2)}
+.receipt .meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0;font-size:13px;color:var(--ink-2);border-bottom:2px dashed var(--line)}
+.receipt table{width:100%;border-collapse:collapse;margin:8px 0}
+.receipt td{padding:4px 0;vertical-align:top;font-size:14px;overflow-wrap:anywhere}
+.receipt td.r{text-align:right;white-space:nowrap;padding-left:12px}
+.receipt .sum td{color:var(--ink-2);font-size:13.5px}
+.receipt .tot td{border-top:2px dashed var(--line);padding-top:8px;font-size:18px;font-weight:700;color:var(--ink)}
+.receipt .thanks{text-align:center;color:var(--ink-2);font-size:13px;margin-top:10px}
+#inv-text{height:150px;font:13px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.mini{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px}
+.mini li{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;font-size:14px}
+.mini li+li{border-top:1px solid var(--line)}
+.mini button{background:none;border:0;padding:0;cursor:pointer;font-weight:600;color:var(--accent);text-align:left}
+.svc-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 16px;width:100%;background:none;border:0;cursor:pointer;text-align:left}
+.svc-row:hover{background:var(--surface-2)}
+.svc-row small{color:var(--ink-2)}
+.cat-h{padding:8px 16px;background:var(--surface-2);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.off{opacity:.55}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px;z-index:90;max-width:calc(100% - 32px)}
+#toast.err{background:var(--bad);color:var(--surface)}
+.foot{margin-top:28px;color:var(--ink-2);font-size:13px}
+@media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:520px){
+  .appt{grid-template-columns:62px minmax(0,1fr)} .appt .side{grid-column:1/-1;justify-content:flex-start}
+  .rowbtn{grid-template-columns:minmax(0,1fr) auto} .rowbtn .bno{grid-column:1/-1} .rowbtn .pill{display:none}
+  .line{grid-template-columns:minmax(0,1fr) 34px;} .line input,.line .qty{grid-column:1} .line .qty{justify-content:flex-start}
+  .line .x{grid-row:1;grid-column:2}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head><body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Sai Beauty Salon</h1>
+      <p>Billing &amp; appointments &middot; <span id="date"></span></p>
+    </div>
+    <div class="head-acts">
+      <button class="btn" data-act="newAppt">New appointment</button>
+      <button class="btn primary" data-act="newBill">New bill</button>
+    </div>
+  </header>
+  <nav class="tabs" aria-label="Sections">
+    <button data-tab="today">Today</button>
+    <button data-tab="appts">Appointments</button>
+    <button data-tab="customers">Customers</button>
+    <button data-tab="bills">Bills</button>
+    <button data-tab="setup">Setup</button>
+  </nav>
+  <main id="view"></main>
+  <p class="foot" id="foot"></p>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title">
+    <div class="sh-head"><h2 id="sh-title"></h2><button class="x" data-act="closeSheet" aria-label="Close">&times;</button></div>
+    <div id="sh-body"></div>
+    <div class="sh-foot" id="sh-foot"></div>
+  </div>
+</div>
+<div id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var uid=function(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)};
+var pad=function(n){return String(n).padStart(2,'0')};
+var dkey=function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+var todayKey=function(){return dkey(new Date())};
+var parseKey=function(k){var p=k.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
+var addDays=function(k,n){var d=parseKey(k);d.setDate(d.getDate()+n);return dkey(d)};
+var fmtDate=function(k,o){return parseKey(k).toLocaleDateString('en-IN',o||{weekday:'short',day:'numeric',month:'short'})};
+var fmtTime=function(t){var p=t.split(':').map(Number);return (((p[0]+11)%12)+1)+':'+pad(p[1])+' '+(p[0]<12?'am':'pm')};
+var toMin=function(t){var p=t.split(':').map(Number);return p[0]*60+p[1]};
+var timeOf=function(ts){var d=new Date(ts);return pad(d.getHours())+':'+pad(d.getMinutes())};
+var f0=new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+var f2=new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+var money=function(n){var r=Math.round((+n||0)*100)/100;return '₹'+(Number.isInteger(r)?f0.format(r):f2.format(r))};
+var compact=function(n){if(n>=100000)return '₹'+(n/100000).toFixed(1).replace(/\.0$/,'')+'L';if(n>=1000)return '₹'+(n/1000).toFixed(1).replace(/\.0$/,'')+'k';return '₹'+Math.round(n)};
+var sumBy=function(a,f){return a.reduce(function(s,x){return s+(+f(x)||0)},0)};
+var byTime=function(a,b){return a.time.localeCompare(b.time)};
+
+var KEY='sai-beauty-salon-v1';
+var COLS=['services','customers','appointments','bills'];
+var DEFAULT_SERVICES=[
+ ['Hair','Haircut (women)',300,45],['Hair','Haircut (men)',150,30],['Hair','Kids haircut',120,20],['Hair','Hair spa',900,60],
+ ['Hair','Hair colour (global)',1800,90],['Hair','Root touch-up',700,45],['Hair','Keratin treatment',3500,150],['Hair','Head massage',250,20],
+ ['Skin','Cleanup',500,40],['Skin','Fruit facial',800,60],['Skin','Gold facial',1500,75],['Skin','De-tan',600,30],
+ ['Waxing & threading','Eyebrow threading',40,10],['Waxing & threading','Upper lip threading',20,5],['Waxing & threading','Underarm wax',100,10],
+ ['Waxing & threading','Full arms wax',350,30],['Waxing & threading','Full legs wax',500,40],
+ ['Nails','Manicure',500,45],['Nails','Pedicure',700,50],['Nails','Nail art (per hand)',400,40],
+ ['Makeup','Party makeup',3500,75],['Makeup','Bridal makeup',15000,180],['Makeup','Saree draping',500,20]
+];
+var defSettings=function(){return {gst:0,staff:['Stylist 1','Stylist 2'],phone:'',address:'',gstin:''}};
+var S={services:[],customers:[],appointments:[],bills:[],settings:defSettings()};
+var ui={tab:'today',apptDate:todayKey(),billRange:'month',billQ:'',custQ:''};
+var db=null,mode='loading',got={},SH={};
+
+/* ---------- storage ---------- */
+var chain=Promise.resolve();
+function queue(fn){chain=chain.then(fn).catch(function(e){toast('Could not save: '+((e&&e.message)||'please try again'),true)})}
+function clean(o){return JSON.parse(JSON.stringify(o))}
+function sortSvc(){S.services.sort(function(a,b){return (a.ord||0)-(b.ord||0)})}
+function localLoad(){try{var j=JSON.parse(localStorage.getItem(KEY));if(j){COLS.forEach(function(c){S[c]=j[c]||[]});S.settings=Object.assign(defSettings(),j.settings||{});return true}}catch(e){}return false}
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function loadStdServices(){
+  var base=Date.now();
+  DEFAULT_SERVICES.forEach(function(r,i){save('services',{cat:r[0],name:r[1],price:r[2],mins:r[3],active:true,ord:base+i},true)});
+  render();
+}
+function save(col,rec,quiet){
+  if(!rec.id)rec.id=uid();
+  var i=S[col].findIndex(function(x){return x.id===rec.id});
+  if(i<0)S[col].push(rec);else S[col][i]=rec;
+  if(col==='services')sortSvc();
+  if(db){var id=rec.id,body=clean(rec);delete body.id;queue(function(){return db.collection(col).doc(id).set(body)})}else localSave();
+  if(!quiet)render();
+  return rec;
+}
+function remove(col,id){
+  S[col]=S[col].filter(function(x){return x.id!==id});
+  if(db)queue(function(){return db.collection(col).doc(id).delete()});else localSave();
+  render();
+}
+function saveSettings(){if(db){var b=clean(S.settings);queue(function(){return db.doc('settings/main').set(b)})}else localSave()}
+function ready(){return mode==='local'||(mode==='db'&&COLS.concat('settings').every(function(c){return got[c]}))}
+function subscribe(){
+  var fail=function(e){toast('Lost connection to saved data'+(e&&e.code?' ('+e.code+')':''),true)};
+  COLS.forEach(function(c){
+    db.collection(c).onSnapshot(function(s){
+      S[c]=s.docs.map(function(d){return Object.assign({id:d.id},d.data())});
+      if(c==='services')sortSvc();
+      got[c]=true;render(true);
+    },fail);
+  });
+  db.doc('settings/main').onSnapshot(function(s){
+    S.settings=s.exists?Object.assign(defSettings(),s.data()):defSettings();
+    got.settings=true;render(true);
+  },fail);
+}
+async function init(){
+  render();
+  var d=null;
+  try{d=await window.claude.use('db')}catch(e){d=null}
+  if(d){db=d;mode='db';subscribe()}
+  else{
+    mode='local';
+    if(!localLoad()){DEFAULT_SERVICES.forEach(function(r,i){S.services.push({id:uid(),cat:r[0],name:r[1],price:r[2],mins:r[3],active:true,ord:i})});localSave()}
+    render();
+  }
+}
+
+/* ---------- lookups ---------- */
+var svc=function(id){return S.services.find(function(s){return s.id===id})};
+var cust=function(id){return S.customers.find(function(c){return c.id===id})};
+var ST={booked:['Booked','p-booked'],done:['Billed','p-done'],cancelled:['Cancelled','p-cancel'],noshow:['No-show','p-noshow']};
+function svcNames(a){return (a.serviceIds||[]).map(function(i){var s=svc(i);return s&&s.name}).filter(Boolean).join(', ')||'No services listed'}
+function apptValue(a){return sumBy(a.serviceIds||[],function(i){var s=svc(i);return s?s.price:0})}
+function anySample(){return COLS.some(function(c){return S[c].some(function(r){return r.sample})})}
+function tagS(r){return r.sample?'<span class="tag">Sample</span>':''}
+
+/* ---------- views ---------- */
+function render(remote){
+  $('#date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-current',b.dataset.tab===ui.tab?'page':'false')});
+  var v=$('#view');
+  if(remote){var ae=document.activeElement;if(ae&&v.contains(ae)&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return}
+  if(!ready()){v.innerHTML='<div class="empty">Loading salon records&hellip;</div>';return}
+  var fn={today:viewToday,appts:viewAppts,customers:viewCustomers,bills:viewBills,setup:viewSetup}[ui.tab];
+  v.innerHTML=(anySample()&&ui.tab!=='setup'?'<div class="notice"><span>Sample entries are showing so you can try the app.</span><button class="btn sm" data-act="rmSamples">Remove sample entries</button></div>':'')+fn();
+  $('#foot').textContent=mode==='local'?'Entries are saved in this browser only. Open this page where signed-in storage is available to keep them across devices.':'';
+}
+function apptRow(a,showDate){
+  var st=ST[a.status]||ST.booked,tp=fmtTime(a.time).split(' ');
+  var acts='';
+  if(a.status==='booked')acts+='<button class="btn sm primary" data-act="billAppt" data-id="'+a.id+'">Bill</button>';
+  if(a.billId&&S.bills.some(function(b){return b.id===a.billId}))acts+='<button class="btn sm" data-act="viewBill" data-id="'+a.billId+'">Invoice</button>';
+  acts+='<button class="btn sm ghost" data-act="editAppt" data-id="'+a.id+'">Edit</button>';
+  var extra=[(a.mins||30)+' min'];
+  if(a.staff&&a.staff!=='Any available')extra.push(esc(a.staff));
+  if(showDate)extra.unshift(fmtDate(a.date));
+  return '<li class="appt '+st[1]+'"><div class="when"><b>'+tp[0]+'</b><span>'+tp[1]+'</span></div>'+
+    '<div class="what"><strong>'+esc(a.name)+tagS(a)+'</strong><small>'+esc(svcNames(a))+'</small><small>'+extra.join(' · ')+(a.note?' · '+esc(a.note):'')+'</small></div>'+
+    '<div class="side"><span class="pill st">'+st[0]+'</span>'+acts+'</div></li>';
+}
+function billRow(b){
+  return '<li><button class="rowbtn" data-act="viewBill" data-id="'+b.id+'"><span class="bno">'+esc(b.no)+'</span><span class="bmain"><strong>'+esc(b.name)+tagS(b)+'</strong><small>'+fmtDate(b.dateKey)+' · '+fmtTime(timeOf(b.ts))+'</small></span><span class="pill mode">'+esc(b.mode)+'</span><span class="amt">'+money(b.total)+'</span></button></li>';
+}
+function viewToday(){
+  var t=todayKey(),appts=S.appointments.filter(function(a){return a.date===t}).sort(byTime);
+  var open=appts.filter(function(a){return a.status==='booked'}).length;
+  var bt=S.bills.filter(function(b){return b.dateKey===t}),mk=t.slice(0,7);
+  var bm=S.bills.filter(function(b){return b.dateKey.slice(0,7)===mk});
+  var days=[],i,max=0;
+  for(i=6;i>=0;i--){var k=addDays(t,-i),v=sumBy(S.bills.filter(function(b){return b.dateKey===k}),function(b){return b.total});days.push({k:k,v:v});if(v>max)max=v}
+  var bars=days.map(function(d){
+    return '<div class="bcol'+(d.k===t?' now':'')+'"><i>'+(d.v?compact(d.v):'–')+'</i><div class="btrack"><div class="bfill" style="height:'+(d.v?Math.max(3,d.v/max*100):0)+'%"></div></div><span>'+(d.k===t?'Today':fmtDate(d.k,{weekday:'short'}))+'</span></div>';
+  }).join('');
+  var recent=S.bills.slice().sort(function(a,b){return b.ts-a.ts}).slice(0,5);
+  return '<div class="stats">'+
+    '<div class="stat"><span>Appointments today</span><b>'+appts.filter(function(a){return a.status!=='cancelled'}).length+'</b><small>'+open+' still to bill</small></div>'+
+    '<div class="stat"><span>Collected today</span><b>'+money(sumBy(bt,function(b){return b.total}))+'</b><small>'+bt.length+' bill'+(bt.length===1?'':'s')+'</small></div>'+
+    '<div class="stat"><span>'+fmtDate(t,{month:'long'})+'</span><b>'+money(sumBy(bm,function(b){return b.total}))+'</b><small>'+bm.length+' bill'+(bm.length===1?'':'s')+' this month</small></div></div>'+
+    '<div class="cols"><section><div class="sec-h"><h2>Today’s schedule</h2><button class="btn sm" data-act="newAppt" data-id="'+t+'">Add appointment</button></div>'+
+    (appts.length?'<ul class="list">'+appts.map(function(a){return apptRow(a)}).join('')+'</ul>':'<div class="empty"><span>No appointments booked for today.</span><button class="btn primary" data-act="newAppt" data-id="'+t+'">Book the first one</button></div>')+
+    '</section><section><div class="sec-h"><h2>Last 7 days</h2></div><div class="panel"><div class="bars" role="img" aria-label="Collections over the last 7 days">'+bars+'</div></div>'+
+    '<div class="sec-h" style="margin-top:24px"><h2>Recent bills</h2><button class="btn sm" data-tab-go="bills">All bills</button></div>'+
+    (recent.length?'<ul class="list">'+recent.map(billRow).join('')+'</ul>':'<div class="empty">No bills yet.</div>')+'</section></div>';
+}
+function viewAppts(){
+  var d=ui.apptDate,t=todayKey(),i;
+  var day=S.appointments.filter(function(a){return a.date===d}).sort(byTime);
+  var exp=sumBy(day.filter(function(a){return a.status==='booked'}),apptValue);
+  var chips='';
+  for(i=-3;i<=3;i++){
+    var k=addDays(d,i),n=S.appointments.filter(function(a){return a.date===k&&a.status==='booked'}).length;
+    chips+='<button class="day'+(k===d?' on':'')+(k===t?' today':'')+'" data-act="setDay" data-id="'+k+'"><span>'+fmtDate(k,{weekday:'short'})+'</span><b>'+parseKey(k).getDate()+'</b><i>'+(n?n+' booked':' ')+'</i></button>';
+  }
+  return '<div class="bar-tools"><button class="btn sm" data-act="shiftDay" data-id="-1" aria-label="Previous day">&lsaquo; Prev</button><button class="btn sm" data-act="setDay" data-id="'+t+'">Today</button><button class="btn sm" data-act="shiftDay" data-id="1" aria-label="Next day">Next &rsaquo;</button>'+
+    '<input type="date" id="ap-jump" value="'+d+'" style="width:auto" aria-label="Jump to date"><span style="flex:1"></span><button class="btn primary" data-act="newAppt" data-id="'+d+'">Book for this day</button></div>'+
+    '<div class="days">'+chips+'</div>'+
+    '<div class="sec-h" style="margin-top:20px"><h2>'+fmtDate(d,{weekday:'long',day:'numeric',month:'long'})+'</h2><span class="hint">'+day.filter(function(a){return a.status==='booked'}).length+' booked'+(exp?' · about '+money(exp)+' expected':'')+'</span></div>'+
+    (day.length?'<ul class="list">'+day.map(function(a){return apptRow(a)}).join('')+'</ul>':'<div class="empty"><span>Nothing booked on this day.</span><button class="btn primary" data-act="newAppt" data-id="'+d+'">Book an appointment</button></div>');
+}
+function custStats(){
+  var m={};
+  S.bills.forEach(function(b){if(!b.customerId)return;var s=m[b.customerId]||(m[b.customerId]={n:0,spent:0,last:''});s.n++;s.spent+=b.total||0;if(b.dateKey>s.last)s.last=b.dateKey});
+  return m;
+}
+function custListHTML(){
+  var q=ui.custQ.trim().toLowerCase(),m=custStats();
+  var list=S.customers.filter(function(c){return !q||(c.name||'').toLowerCase().indexOf(q)>-1||(c.phone||'').indexOf(q)>-1}).sort(function(a,b){return (a.name||'').localeCompare(b.name||'')});
+  if(!list.length)return '<div class="empty">'+(S.customers.length?'No customer matches “'+esc(ui.custQ)+'”.':'No customers yet. They are added when you book or bill.')+'</div>';
+  return '<ul class="list">'+list.map(function(c){
+    var s=m[c.id]||{n:0,spent:0,last:''};
+    return '<li><button class="rowbtn cust" data-act="viewCust" data-id="'+c.id+'"><span class="bmain"><strong>'+esc(c.name)+tagS(c)+'</strong><small>'+(c.phone?esc(c.phone):'No mobile saved')+(s.last?' · last visit '+fmtDate(s.last,{day:'numeric',month:'short'}):'')+'</small></span><span class="amt">'+money(s.spent)+'<small>'+s.n+' visit'+(s.n===1?'':'s')+'</small></span></button></li>';
+  }).join('')+'</ul>';
+}
+function viewCustomers(){
+  return '<div class="bar-tools"><input class="search" id="cust-q" type="search" placeholder="Search by name or mobile" value="'+esc(ui.custQ)+'" aria-label="Search customers"><button class="btn primary" data-act="newCust">Add customer</button></div><div id="custList">'+custListHTML()+'</div>';
+}
+function billsFiltered(){
+  var t=todayKey(),q=ui.billQ.trim().toLowerCase();
+  return S.bills.filter(function(b){
+    var ok=ui.billRange==='today'?b.dateKey===t:ui.billRange==='week'?b.dateKey>=addDays(t,-6):ui.billRange==='month'?b.dateKey.slice(0,7)===t.slice(0,7):true;
+    return ok&&(!q||(b.name||'').toLowerCase().indexOf(q)>-1||(b.no||'').toLowerCase().indexOf(q)>-1||(b.phone||'').indexOf(q)>-1);
+  }).sort(function(a,b){return b.ts-a.ts});
+}
+function billOutHTML(){
+  var list=billsFiltered(),tot=sumBy(list,function(b){return b.total}),modes={Cash:0,UPI:0,Card:0};
+  list.forEach(function(b){modes[b.mode]=(modes[b.mode]||0)+b.total});
+  return '<div class="stats"><div class="stat"><span>Collected</span><b>'+money(tot)+'</b><small>'+list.length+' bill'+(list.length===1?'':'s')+'</small></div>'+
+    '<div class="stat"><span>Average bill</span><b>'+money(list.length?tot/list.length:0)+'</b><small>&nbsp;</small></div>'+
+    '<div class="stat"><span>By payment mode</span><small style="display:block;margin-top:6px;color:var(--ink);font-size:14px;line-height:1.6">Cash '+money(modes.Cash)+'<br>UPI '+money(modes.UPI)+'<br>Card '+money(modes.Card)+'</small></div></div>'+
+    '<div style="margin-top:18px">'+(list.length?'<ul class="list">'+list.map(billRow).join('')+'</ul>':'<div class="empty"><span>No bills for this selection.</span><button class="btn primary" data-act="newBill">Create a bill</button></div>')+'</div>';
+}
+function viewBills(){
+  var r=[['today','Today'],['week','Last 7 days'],['month','This month'],['all','All']];
+  return '<div class="bar-tools">'+r.map(function(x){return '<button class="chip'+(ui.billRange===x[0]?' on':'')+'" data-act="range" data-id="'+x[0]+'">'+x[1]+'</button>'}).join('')+
+    '<input class="search" id="bill-q" type="search" placeholder="Search name, mobile or bill number" value="'+esc(ui.billQ)+'" aria-label="Search bills"></div><div id="billOut">'+billOutHTML()+'</div>';
+}
+function viewSetup(){
+  var st=S.settings,cats=[],rows='';
+  S.services.forEach(function(s){var c=s.cat||'Other';if(cats.indexOf(c)<0)cats.push(c)});
+  cats.forEach(function(c){
+    rows+='<div class="cat-h">'+esc(c)+'</div>'+S.services.filter(function(s){return (s.cat||'Other')===c}).map(function(s){
+      return '<button class="svc-row'+(s.active===false?' off':'')+'" data-act="editSvc" data-id="'+s.id+'"><span>'+esc(s.name)+tagS(s)+(s.active===false?' <small>(hidden)</small>':'')+'<br><small>'+(s.mins||30)+' min</small></span><strong>'+money(s.price)+'</strong></button>';
+    }).join('');
+  });
+  return '<div class="cols"><section><div class="sec-h"><h2>Salon details</h2></div><div class="panel form">'+
+    '<label class="field">Phone shown on bills<input id="st-phone" inputmode="tel" value="'+esc(st.phone)+'"></label>'+
+    '<label class="field">Address shown on bills<textarea id="st-addr" rows="2">'+esc(st.address)+'</textarea></label>'+
+    '<div class="row2"><label class="field">GSTIN (optional)<input id="st-gstin" value="'+esc(st.gstin)+'" autocapitalize="characters"></label>'+
+    '<label class="field">GST % on bills<input id="st-gst" type="number" min="0" step="any" value="'+(+st.gst||0)+'"></label></div>'+
+    '<p class="hint">Leave GST at 0 if the salon does not charge it. You can still change it on each bill.</p>'+
+    '<label class="field">Stylists (separate with commas)<input id="st-staff" value="'+esc((st.staff||[]).join(', '))+'"></label>'+
+    '<div><button class="btn primary" data-act="saveSettings">Save details</button></div></div>'+
+    (anySample()?'<div class="notice" style="margin-top:18px"><span>Sample entries are present in appointments, customers and bills.</span><button class="btn sm" data-act="rmSamples">Remove them</button></div>':'')+
+    '</section><section><div class="sec-h"><h2>Services &amp; prices</h2><button class="btn sm primary" data-act="newSvc">Add service</button></div>'+
+    (S.services.length?'<div class="list">'+rows+'</div>':'<div class="empty"><span>No services yet.</span><button class="btn primary" data-act="stdServices">Load a standard salon price list</button><small>Prices are examples. Edit them to match your salon.</small></div>')+'</section></div>';
+}
+
+/* ---------- sheets ---------- */
+function openSheet(title,body,foot,mount){
+  $('#sh-title').textContent=title;$('#sh-body').innerHTML=body;
+  $('#sh-foot').innerHTML=foot||'';$('#sh-foot').hidden=!foot;
+  $('#scrim').hidden=false;document.body.style.overflow='hidden';
+  $('.sheet').scrollTop=0;
+  if(mount)mount($('#sh-body'));
+}
+function closeSheet(){$('#scrim').hidden=true;document.body.style.overflow='';SH={}}
+var tt;
+function toast(msg,err){var t=$('#toast');t.textContent=msg;t.className=err?'err':'';t.hidden=false;clearTimeout(tt);tt=setTimeout(function(){t.hidden=true},2600)}
+function confirmDel(btn,fn){
+  if(btn.dataset.armed){fn();return}
+  btn.dataset.armed='1';var o=btn.textContent;btn.textContent='Tap again to delete';btn.classList.add('armed');
+  setTimeout(function(){if(btn.isConnected){delete btn.dataset.armed;btn.textContent=o;btn.classList.remove('armed')}},4000);
+}
+function pickerHTML(allowWalk,selId){
+  var o='';
+  if(allowWalk)o+='<option value="__walk"'+(!selId?' selected':'')+'>Walk-in (no details)</option>';
+  o+='<option value="__new"'+(!selId&&!allowWalk?' selected':'')+'>+ New customer</option>';
+  S.customers.slice().sort(function(a,b){return (a.name||'').localeCompare(b.name||'')}).forEach(function(c){
+    o+='<option value="'+c.id+'"'+(c.id===selId?' selected':'')+'>'+esc(c.name)+(c.phone?' · '+esc(c.phone):'')+'</option>';
+  });
+  var showNew=!selId&&!allowWalk;
+  return '<div class="field"><label for="pk-sel">Customer</label><select id="pk-sel">'+o+'</select>'+
+    '<div id="pk-new" class="row2"'+(showNew?'':' hidden')+'><input id="pk-name" placeholder="Name" autocomplete="off" aria-label="New customer name"><input id="pk-phone" inputmode="tel" placeholder="Mobile (10 digits)" autocomplete="off" aria-label="New customer mobile"></div></div>';
+}
+function pickerMount(root){
+  var sel=$('#pk-sel',root);
+  sel.addEventListener('change',function(){$('#pk-new',root).hidden=sel.value!=='__new'});
+}
+function getPicker(){
+  var v=$('#pk-sel').value;
+  if(v==='__walk')return {customerId:null,name:'Walk-in customer',phone:''};
+  if(v==='__new'){
+    var name=$('#pk-name').value.trim(),raw=$('#pk-phone').value.replace(/\D/g,''),phone=raw.slice(-10);
+    if(!name){toast('Enter the customer name',true);$('#pk-name').focus();return null}
+    if(raw&&phone.length!==10){toast('Mobile number should be 10 digits',true);$('#pk-phone').focus();return null}
+    var c=phone&&S.customers.find(function(x){return x.phone===phone});
+    if(!c)c=save('customers',{name:name,phone:phone,note:'',created:Date.now()},true);
+    return {customerId:c.id,name:c.name,phone:c.phone||''};
+  }
+  var cc=cust(v);
+  return cc?{customerId:cc.id,name:cc.name,phone:cc.phone||''}:{customerId:null,name:'Customer',phone:''};
+}
+function svcChips(sel){
+  var act=S.services.filter(function(s){return s.active!==false});
+  if(!act.length)return '<p class="hint">No services yet. Add them under Setup.</p>';
+  var cats=[];act.forEach(function(s){var c=s.cat||'Other';if(cats.indexOf(c)<0)cats.push(c)});
+  return cats.map(function(c){
+    return '<div class="grp"><h4>'+esc(c)+'</h4><div class="chips">'+act.filter(function(s){return (s.cat||'Other')===c}).map(function(s){
+      return '<button type="button" class="chip" data-sid="'+s.id+'"'+(sel?' aria-pressed="'+sel.has(s.id)+'"':'')+'>'+esc(s.name)+' <small>'+money(s.price)+'</small></button>';
+    }).join('')+'</div></div>';
+  }).join('');
+}
+
+function apptSheet(a){
+  var edit=!!a.id,sel=new Set(a.serviceIds||[]),staff=['Any available'].concat(S.settings.staff||[]);
+  if(a.staff&&staff.indexOf(a.staff)<0)staff.push(a.staff);
+  var body=pickerHTML(false,a.customerId)+
+    '<div class="row2"><label class="field">Date<input type="date" id="ap-date" value="'+a.date+'"></label><label class="field">Time<input type="time" id="ap-time" step="900" value="'+(a.time||'11:00')+'"></label></div>'+
+    '<label class="field">Stylist<select id="ap-staff">'+staff.map(function(s){return '<option'+(s===(a.staff||'Any available')?' selected':'')+'>'+esc(s)+'</option>'}).join('')+'</select></label>'+
+    '<div class="field"><span>Services</span><div id="ap-svcs">'+svcChips(sel)+'</div></div>'+
+    '<p id="ap-sum" class="hint"></p><p id="ap-warn" class="warnline" hidden></p>'+
+    '<label class="field">Note (optional)<input id="ap-note" value="'+esc(a.note||'')+'" autocomplete="off"></label>'+
+    (edit?'<label class="field">Status<select id="ap-status">'+Object.keys(ST).map(function(k){return '<option value="'+k+'"'+(k===a.status?' selected':'')+'>'+ST[k][0]+'</option>'}).join('')+'</select></label>':'');
+  var foot=(edit?'<button class="btn danger left" data-act="sh" data-id="del">Delete</button>':'')+'<button class="btn" data-act="closeSheet">Cancel</button><button class="btn primary" data-act="sh" data-id="save">Save appointment</button>';
+  openSheet(edit?'Edit appointment':'New appointment',body,foot,function(root){
+    pickerMount(root);
+    function check(){
+      var ids=Array.from(sel),mins=Math.max(15,sumBy(ids,function(i){var s=svc(i);return s?s.mins:30})),val=sumBy(ids,function(i){var s=svc(i);return s?s.price:0});
+      $('#ap-sum').textContent=ids.length?ids.length+' service'+(ids.length===1?'':'s')+' · about '+mins+' min · '+money(val):'Pick the services for this visit.';
+      var d=$('#ap-date').value,t=$('#ap-time').value,st=$('#ap-staff').value,w=$('#ap-warn');
+      var cl=(d&&t&&st!=='Any available')?S.appointments.filter(function(x){return x.id!==a.id&&x.date===d&&x.status==='booked'&&x.staff===st&&toMin(x.time)<toMin(t)+mins&&toMin(t)<toMin(x.time)+(x.mins||30)}):[];
+      w.hidden=!cl.length;
+      if(cl.length)w.textContent=st+' already has '+esc2(cl[0].name)+' at '+fmtTime(cl[0].time)+'. You can still save this.';
+    }
+    function esc2(s){return String(s)}
+    root.addEventListener('click',function(e){
+      var c=e.target.closest('[data-sid]');if(!c)return;
+      var id=c.dataset.sid;if(sel.has(id))sel.delete(id);else sel.add(id);
+      c.setAttribute('aria-pressed',sel.has(id));check();
+    });
+    ['ap-date','ap-time','ap-staff'].forEach(function(i){$('#'+i,root).addEventListener('change',check)});
+    check();
+    SH.save=function(){
+      var p=getPicker();if(!p)return;
+      var ids=Array.from(sel);if(!ids.length){toast('Pick at least one service',true);return}
+      var date=$('#ap-date').value,time=$('#ap-time').value;
+      if(!date||!time){toast('Choose a date and time',true);return}
+      var mins=Math.max(15,sumBy(ids,function(i){var s=svc(i);return s?s.mins:30}));
+      var rec=Object.assign({created:Date.now()},a,{customerId:p.customerId,name:p.name,phone:p.phone,serviceIds:ids,date:date,time:time,mins:mins,staff:$('#ap-staff').value,note:$('#ap-note').value.trim(),status:edit?$('#ap-status').value:'booked'});
+      save('appointments',rec);
+      if(ui.tab==='appts')ui.apptDate=date;
+      closeSheet();render();toast('Appointment saved');
+    };
+    SH.del=function(btn){confirmDel(btn,function(){remove('appointments',a.id);closeSheet();toast('Appointment deleted')})};
+  });
+}
+
+function calcBill(lines,disc,dtype,rate){
+  var sub=sumBy(lines,function(l){return l.price*l.qty});
+  var d=dtype==='pct'?sub*disc/100:disc;d=Math.min(Math.max(d,0),sub);
+  var taxable=sub-d,gst=Math.round(taxable*rate)/100,raw=taxable+gst,total=Math.round(raw);
+  return {sub:sub,discount:Math.round(d*100)/100,gst:gst,roundOff:Math.round((total-raw)*100)/100,total:total};
+}
+function billSheet(init){
+  var lines=(init.items||[]).map(function(x){return Object.assign({},x)}),dtype='amt',pay='Cash';
+  var body=pickerHTML(true,init.customerId)+
+    '<div class="field"><span>Add services</span><div id="bl-svcs">'+svcChips(null)+'</div></div>'+
+    '<div><div class="hint" style="margin-bottom:2px">On this bill</div><div id="bl-lines"></div></div>'+
+    '<div class="row2"><div class="field"><label for="bl-disc">Discount</label><div class="inline"><input id="bl-disc" type="number" min="0" step="any" value="0" inputmode="decimal"><select id="bl-dtype" aria-label="Discount type"><option value="amt">₹</option><option value="pct">%</option></select></div></div>'+
+    '<label class="field">GST %<input id="bl-gst" type="number" min="0" step="any" value="'+(+S.settings.gst||0)+'" inputmode="decimal"></label></div>'+
+    '<div class="field"><span>Paid by</span><div class="seg" id="bl-mode">'+['Cash','UPI','Card'].map(function(m){return '<button type="button" data-mode="'+m+'" aria-pressed="'+(m===pay)+'">'+m+'</button>'}).join('')+'</div></div>'+
+    '<div class="totals" id="bl-tot"></div>';
+  var foot='<button class="btn" data-act="closeSheet">Cancel</button><button class="btn primary" data-act="sh" data-id="save">Save bill</button>';
+  openSheet('New bill',body,foot,function(root){
+    pickerMount(root);
+    function calc(){return calcBill(lines,+$('#bl-disc').value||0,dtype,+$('#bl-gst').value||0)}
+    function totals(){
+      var c=calc(),r='<div><span>Subtotal</span><span>'+money(c.sub)+'</span></div>';
+      if(c.discount)r+='<div><span>Discount</span><span>−'+money(c.discount)+'</span></div>';
+      if(c.gst)r+='<div><span>GST '+(+$('#bl-gst').value)+'%</span><span>'+money(c.gst)+'</span></div>';
+      if(c.roundOff)r+='<div><span>Round off</span><span>'+(c.roundOff>0?'+':'−')+money(Math.abs(c.roundOff))+'</span></div>';
+      $('#bl-tot').innerHTML=r+'<div class="grand"><span>Total</span><span>'+money(c.total)+'</span></div>';
+    }
+    function draw(){
+      $('#bl-lines').innerHTML=lines.length?lines.map(function(l,i){
+        return '<div class="line"><span class="ln">'+esc(l.name)+'</span><input class="lp" data-i="'+i+'" type="number" min="0" step="any" inputmode="decimal" value="'+l.price+'" aria-label="Price for '+esc(l.name)+'">'+
+          '<div class="qty"><button type="button" data-q="-1" data-i="'+i+'" aria-label="Fewer">−</button><b>'+l.qty+'</b><button type="button" data-q="1" data-i="'+i+'" aria-label="More">+</button></div>'+
+          '<button type="button" class="x" data-rm="'+i+'" aria-label="Remove '+esc(l.name)+'">&times;</button></div>';
+      }).join(''):'<p class="hint">Tap a service above to add it to the bill.</p>';
+      totals();
+    }
+    root.addEventListener('click',function(e){
+      var c=e.target.closest('[data-sid]');
+      if(c){var s=svc(c.dataset.sid);if(!s)return;var ex=lines.find(function(l){return l.sid===s.id});if(ex)ex.qty++;else lines.push({sid:s.id,name:s.name,price:s.price,qty:1});draw();return}
+      var q=e.target.closest('[data-q]');
+      if(q){var l=lines[+q.dataset.i];l.qty=Math.max(1,l.qty+(+q.dataset.q));draw();return}
+      var rm=e.target.closest('[data-rm]');
+      if(rm){lines.splice(+rm.dataset.rm,1);draw();return}
+      var m=e.target.closest('[data-mode]');
+      if(m){pay=m.dataset.mode;root.querySelectorAll('[data-mode]').forEach(function(b){b.setAttribute('aria-pressed',b===m)})}
+    });
+    root.addEventListener('input',function(e){
+      if(e.target.classList.contains('lp')){lines[+e.target.dataset.i].price=Math.max(0,+e.target.value||0);totals();return}
+      if(e.target.id==='bl-disc'||e.target.id==='bl-gst')totals();
+    });
+    $('#bl-dtype',root).addEventListener('change',function(e){dtype=e.target.value;totals()});
+    draw();
+    SH.save=function(){
+      var p=getPicker();if(!p)return;
+      if(!lines.length){toast('Add at least one service',true);return}
+      var c=calc(),seq=Math.max.apply(null,[0].concat(S.bills.map(function(b){return b.seq||0})))+1,now=new Date();
+      var rec=save('bills',{no:'SB-'+String(seq).padStart(4,'0'),seq:seq,ts:now.getTime(),dateKey:dkey(now),customerId:p.customerId,name:p.name,phone:p.phone,
+        items:lines.map(function(l){return {name:l.name,price:+l.price||0,qty:l.qty}}),subtotal:c.sub,discount:c.discount,gstRate:+$('#bl-gst').value||0,gst:c.gst,roundOff:c.roundOff,total:c.total,mode:pay,apptId:init.apptId||null},true);
+      if(init.apptId){var ap=S.appointments.find(function(x){return x.id===init.apptId});if(ap)save('appointments',Object.assign({},ap,{status:'done',billId:rec.id}),true)}
+      closeSheet();render();invoiceSheet(rec);toast('Bill '+rec.no+' saved');
+    };
+  });
+}
+
+function billText(b){
+  var st=S.settings,L=[];
+  L.push('SAI BEAUTY SALON');
+  if(st.address)L.push(st.address);
+  if(st.phone)L.push('Phone: '+st.phone);
+  if(st.gstin)L.push('GSTIN: '+st.gstin);
+  L.push('','Bill '+b.no+' · '+fmtDate(b.dateKey,{day:'numeric',month:'short',year:'numeric'})+', '+fmtTime(timeOf(b.ts)),'Customer: '+b.name,'------------------------');
+  b.items.forEach(function(i){L.push(i.name+(i.qty>1?' x'+i.qty:'')+'  '+money(i.price*i.qty))});
+  L.push('------------------------','Subtotal  '+money(b.subtotal));
+  if(b.discount)L.push('Discount  -'+money(b.discount));
+  if(b.gst)L.push('GST '+b.gstRate+'%  '+money(b.gst));
+  if(b.roundOff)L.push('Round off  '+(b.roundOff>0?'+':'-')+money(Math.abs(b.roundOff)));
+  L.push('TOTAL  '+money(b.total),'Paid by '+b.mode,'','Thank you, visit again!');
+  return L.join('\n');
+}
+function invoiceSheet(b){
+  var st=S.settings;
+  var rows=b.items.map(function(i){return '<tr><td>'+esc(i.name)+(i.qty>1?' &times; '+i.qty:'')+'</td><td class="r">'+money(i.price*i.qty)+'</td></tr>'}).join('');
+  var sum='<tr class="sum"><td>Subtotal</td><td class="r">'+money(b.subtotal)+'</td></tr>'+
+    (b.discount?'<tr class="sum"><td>Discount</td><td class="r">−'+money(b.discount)+'</td></tr>':'')+
+    (b.gst?'<tr class="sum"><td>GST '+b.gstRate+'%</td><td class="r">'+money(b.gst)+'</td></tr>':'')+
+    (b.roundOff?'<tr class="sum"><td>Round off</td><td class="r">'+(b.roundOff>0?'+':'−')+money(Math.abs(b.roundOff))+'</td></tr>':'');
+  var num=(b.phone||'').replace(/\D/g,'').slice(-10),text=billText(b);
+  var body='<div class="receipt"><div class="rh"><h3>Sai Beauty Salon</h3>'+(st.address?'<small>'+esc(st.address)+'</small>':'')+(st.phone?'<small>Phone '+esc(st.phone)+'</small>':'')+(st.gstin?'<small>GSTIN '+esc(st.gstin)+'</small>':'')+'</div>'+
+    '<div class="meta"><span><b>'+esc(b.no)+'</b>'+tagS(b)+'</span><span>'+fmtDate(b.dateKey,{day:'numeric',month:'short',year:'numeric'})+', '+fmtTime(timeOf(b.ts))+'</span><span style="flex-basis:100%">'+esc(b.name)+(b.phone?' · '+esc(b.phone):'')+'</span></div>'+
+    '<table>'+rows+sum+'<tr class="tot"><td>Total</td><td class="r">'+money(b.total)+'</td></tr></table>'+
+    '<div class="meta" style="border:0;padding:0">Paid by '+esc(b.mode)+'</div><p class="thanks">Thank you, visit again!</p></div>'+
+    '<textarea id="inv-text" readonly hidden aria-label="Invoice text">'+esc(text)+'</textarea>';
+  var foot='<button class="btn danger left" data-act="sh" data-id="del">Delete bill</button>'+
+    (num.length===10?'<a class="btn" target="_blank" rel="noopener" href="https://wa.me/91'+num+'?text='+encodeURIComponent(text)+'">Send on WhatsApp</a>':'')+
+    '<button class="btn" data-act="sh" data-id="copy">Copy as text</button><button class="btn primary" data-act="closeSheet">Done</button>';
+  openSheet('Invoice',body,foot,function(){
+    SH.copy=function(){
+      var ta=$('#inv-text');
+      var fallback=function(){ta.hidden=false;ta.focus();ta.select();toast('Select the text and copy it')};
+      try{navigator.clipboard.writeText(text).then(function(){toast('Invoice copied')},fallback)}catch(e){fallback()}
+    };
+    SH.del=function(btn){confirmDel(btn,function(){
+      if(b.apptId){var ap=S.appointments.find(function(x){return x.id===b.apptId});if(ap)save('appointments',Object.assign({},ap,{status:'booked',billId:null}),true)}
+      remove('bills',b.id);closeSheet();toast('Bill deleted');
+    })};
+  });
+}
+
+function custSheet(c){
+  var edit=!!c.id,bills=edit?S.bills.filter(function(b){return b.customerId===c.id}).sort(function(a,b){return b.ts-a.ts}):[];
+  var up=edit?S.appointments.filter(function(a){return a.customerId===c.id&&a.status==='booked'}).sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time)}):[];
+  var body='<div class="form"><div class="row2"><label class="field">Name<input id="cu-name" value="'+esc(c.name||'')+'" autocomplete="off"></label><label class="field">Mobile<input id="cu-phone" inputmode="tel" value="'+esc(c.phone||'')+'" autocomplete="off"></label></div>'+
+    '<label class="field">Notes (allergies, preferences)<textarea id="cu-note" rows="2">'+esc(c.note||'')+'</textarea></label></div>'+
+    (edit?'<div class="field"><span>Upcoming</span>'+(up.length?'<ul class="mini">'+up.map(function(a){return '<li><button data-act="editAppt" data-id="'+a.id+'">'+fmtDate(a.date)+', '+fmtTime(a.time)+'</button><span>'+esc(svcNames(a))+'</span></li>'}).join('')+'</ul>':'<p class="hint">No upcoming appointments.</p>')+'</div>'+
+    '<div class="field"><span>Bills ('+bills.length+', '+money(sumBy(bills,function(b){return b.total}))+' in total)</span>'+(bills.length?'<ul class="mini">'+bills.slice(0,8).map(function(b){return '<li><button data-act="viewBill" data-id="'+b.id+'">'+esc(b.no)+' · '+fmtDate(b.dateKey,{day:'numeric',month:'short',year:'numeric'})+'</button><span>'+money(b.total)+'</span></li>'}).join('')+'</ul>':'<p class="hint">No bills yet.</p>')+'</div>':'');
+  var foot=(edit?'<button class="btn danger left" data-act="sh" data-id="del">Delete</button><button class="btn" data-act="sh" data-id="book">Book</button><button class="btn" data-act="sh" data-id="bill">New bill</button>':'')+'<button class="btn primary" data-act="sh" data-id="save">Save</button>';
+  openSheet(edit?'Customer':'New customer',body,foot,function(){
+    function read(){
+      var name=$('#cu-name').value.trim(),raw=$('#cu-phone').value.replace(/\D/g,''),phone=raw.slice(-10);
+      if(!name){toast('Enter the customer name',true);return null}
+      if(raw&&phone.length!==10){toast('Mobile number should be 10 digits',true);return null}
+      return Object.assign({created:Date.now()},c,{name:name,phone:phone,note:$('#cu-note').value.trim()});
+    }
+    SH.save=function(){var r=read();if(!r)return;save('customers',r);closeSheet();toast('Customer saved')};
+    SH.book=function(){var r=read();if(!r)return;r=save('customers',r,true);apptSheet({date:todayKey(),customerId:r.id})};
+    SH.bill=function(){var r=read();if(!r)return;r=save('customers',r,true);billSheet({customerId:r.id})};
+    SH.del=function(btn){confirmDel(btn,function(){remove('customers',c.id);closeSheet();toast('Customer deleted')})};
+  });
+}
+function svcSheet(s){
+  var edit=!!s.id,cats=[];S.services.forEach(function(x){var c=x.cat||'Other';if(cats.indexOf(c)<0)cats.push(c)});
+  var body='<div class="form"><label class="field">Service name<input id="sv-name" value="'+esc(s.name||'')+'" autocomplete="off"></label>'+
+    '<label class="field">Category<input id="sv-cat" list="sv-cats" value="'+esc(s.cat||'')+'" autocomplete="off"><datalist id="sv-cats">'+cats.map(function(c){return '<option value="'+esc(c)+'">'}).join('')+'</datalist></label>'+
+    '<div class="row2"><label class="field">Price (₹)<input id="sv-price" type="number" min="0" step="any" inputmode="decimal" value="'+(s.price==null?'':s.price)+'"></label><label class="field">Time (minutes)<input id="sv-mins" type="number" min="5" step="5" inputmode="numeric" value="'+(s.mins||30)+'"></label></div>'+
+    '<label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="sv-active"'+(s.active===false?'':' checked')+'> Show this service when booking and billing</label></div>';
+  var foot=(edit?'<button class="btn danger left" data-act="sh" data-id="del">Delete</button>':'')+'<button class="btn" data-act="closeSheet">Cancel</button><button class="btn primary" data-act="sh" data-id="save">Save service</button>';
+  openSheet(edit?'Edit service':'New service',body,foot,function(){
+    SH.save=function(){
+      var name=$('#sv-name').value.trim(),price=+$('#sv-price').value;
+      if(!name){toast('Enter the service name',true);return}
+      if($('#sv-price').value===''||price<0){toast('Enter a price',true);return}
+      save('services',Object.assign({ord:Date.now()},s,{name:name,cat:$('#sv-cat').value.trim()||'Other',price:price,mins:Math.max(5,+$('#sv-mins').value||30),active:$('#sv-active').checked}));
+      closeSheet();toast('Service saved');
+    };
+    SH.del=function(btn){confirmDel(btn,function(){remove('services',s.id);closeSheet();toast('Service deleted')})};
+  });
+}
+
+/* ---------- actions ---------- */
+var ACTIONS={
+  newAppt:function(id){apptSheet({date:id||(ui.tab==='appts'?ui.apptDate:todayKey())})},
+  editAppt:function(id){var a=S.appointments.find(function(x){return x.id===id});if(a)apptSheet(a)},
+  billAppt:function(id){
+    var a=S.appointments.find(function(x){return x.id===id});if(!a)return;
+    var items=(a.serviceIds||[]).map(function(i){var s=svc(i);return s?{sid:s.id,name:s.name,price:s.price,qty:1}:null}).filter(Boolean);
+    billSheet({customerId:a.customerId,apptId:a.id,items:items});
+  },
+  newBill:function(){billSheet({})},
+  viewBill:function(id){var b=S.bills.find(function(x){return x.id===id});if(b)invoiceSheet(b)},
+  newCust:function(){custSheet({})},
+  viewCust:function(id){var c=cust(id);if(c)custSheet(c)},
+  newSvc:function(){svcSheet({})},
+  editSvc:function(id){var s=svc(id);if(s)svcSheet(s)},
+  stdServices:loadStdServices,
+  setDay:function(id){ui.apptDate=id;render()},
+  shiftDay:function(id){ui.apptDate=addDays(ui.apptDate,+id);render()},
+  range:function(id){ui.billRange=id;render()},
+  closeSheet:closeSheet,
+  sh:function(id,btn){if(SH[id])SH[id](btn)},
+  saveSettings:function(){
+    var g=+$('#st-gst').value;
+    S.settings=Object.assign({},S.settings,{phone:$('#st-phone').value.trim(),address:$('#st-addr').value.trim(),gstin:$('#st-gstin').value.trim().toUpperCase(),gst:g>=0?g:0,
+      staff:$('#st-staff').value.split(',').map(function(x){return x.trim()}).filter(Boolean)});
+    saveSettings();render();toast('Details saved');
+  },
+  rmSamples:function(){
+    COLS.forEach(function(c){
+      var gone=S[c].filter(function(r){return r.sample}).map(function(r){return r.id});
+      S[c]=S[c].filter(function(r){return !r.sample});
+      if(db&&gone.length)gone.forEach(function(id){queue(function(){return db.collection(c).doc(id).delete()})});
+    });
+    if(!db)localSave();
+    render();toast('Sample entries removed');
+  }
+};
+document.addEventListener('click',function(e){
+  var tb=e.target.closest('.tabs [data-tab]');
+  if(tb){ui.tab=tb.dataset.tab;render();window.scrollTo(0,0);return}
+  var go=e.target.closest('[data-tab-go]');
+  if(go){ui.tab=go.dataset.tabGo;render();window.scrollTo(0,0);return}
+  if(e.target===$('#scrim')){closeSheet();return}
+  var b=e.target.closest('[data-act]');if(!b)return;
+  var fn=ACTIONS[b.dataset.act];if(!fn)return;
+  /* sheet-in-sheet: opening another sheet replaces the current one */
+  fn(b.dataset.id,b,e);
+});
+document.addEventListener('input',function(e){
+  if(e.target.id==='cust-q'){ui.custQ=e.target.value;$('#custList').innerHTML=custListHTML()}
+  if(e.target.id==='bill-q'){ui.billQ=e.target.value;$('#billOut').innerHTML=billOutHTML()}
+});
+document.addEventListener('change',function(e){
+  if(e.target.id==='ap-jump'&&e.target.value){ui.apptDate=e.target.value;render()}
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#scrim').hidden)closeSheet()});
+init();
+})();
+</script>
+
+
+</body></html>
